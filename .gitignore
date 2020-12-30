@@ -1,0 +1,5 @@
+OpenCVFaceRecognition/output/
+OpenCVFaceRecognition/dataset/
+OpenCVFaceRecognition/dataset/
+COVID-19faceMaskDetector/dataset/
+realTimeObjectDetection/MobileNetSSD_deploy.caffemodel/
