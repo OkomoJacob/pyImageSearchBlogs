@@ -2,4 +2,7 @@ OpenCVFaceRecognition/output/
 OpenCVFaceRecognition/dataset/
 OpenCVFaceRecognition/dataset/
 COVID-19faceMaskDetector/dataset/
+COVID-19faceMaskDetector/dirty_dataset/
+COVID-19faceMaskDetector/ai-venv/
 realTimeObjectDetection/MobileNetSSD_deploy.caffemodel/
+.DS_Store
