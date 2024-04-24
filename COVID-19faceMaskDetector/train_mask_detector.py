@@ -23,6 +23,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import argparse
 import os
+from numpy import concatenate
+import itertools
 
 # construct the argument parser and parse the arguments
 ap = argparse.ArgumentParser()
@@ -73,8 +75,12 @@ labels = to_categorical(labels)
 
 # partition the data into training and testing splits using 75% of
 # the data for training and the remaining 25% for testing
+
+
 (trainX, testX, trainY, testY) = train_test_split(data, labels,
 	test_size=0.20, stratify=labels, random_state=42)
+trainX_repeated = concatenate([trainX] * EPOCHS)
+trainY_repeated = concatenate([trainY] * EPOCHS)
 
 # construct the training image generator for data augmentation
 aug = ImageDataGenerator(
@@ -111,18 +117,25 @@ for layer in baseModel.layers:
 
 # compile our model
 print("[INFO] compiling model...")
-opt = Adam(lr=INIT_LR, decay=INIT_LR / EPOCHS)
-model.compile(loss="binary_crossentropy", optimizer=opt,
-	metrics=["accuracy"])
+# Initialize the Adam optimizer without the `decay` parameter
+opt = Adam(learning_rate=INIT_LR)
+model.compile(loss="binary_crossentropy", optimizer=opt, metrics=["accuracy"])
 
-# train the head of the network
+
+# Train the head of the network
+# Create a separate validation data generator with the repeat method
+val_data_generator = aug.flow(testX, testY, batch_size=BS)
+
+# Create an infinite iterator over the validation data
+
 print("[INFO] training head...")
 H = model.fit(
-	aug.flow(trainX, trainY, batch_size=BS),
-	steps_per_epoch=len(trainX) // BS,
-	validation_data=(testX, testY),
-	validation_steps=len(testX) // BS,
-	epochs=EPOCHS)
+    aug.flow(trainX, trainY, batch_size=BS),
+    steps_per_epoch=len(trainX) // BS,
+    validation_data=val_data_generator,
+    validation_steps=len(testX) // BS,
+    epochs=EPOCHS
+)
 
 # make predictions on the testing set
 print("[INFO] evaluating network...")
@@ -138,7 +151,7 @@ print(classification_report(testY.argmax(axis=1), predIdxs,
 
 # serialize the model to disk
 print("[INFO] saving mask detector model...")
-model.save(args["model"], save_format="h5")
+model.save(args["model"] + ".h5")  # Add ".h5" extension to the file path
 
 # plot the training loss and accuracy
 N = EPOCHS
